@@ -7,8 +7,8 @@ const doctorRoutes = require('./routes/doctorRoutes');
 
 const init = async () => {
     const server = Hapi.server({
-        port: 5000,
-        host: 'localhost',
+        port: process.env.PORT || 8080,
+        host: '0.0.0.0',  // Use '0.0.0.0' to allow external connections
     });
 
     // Membaca dan mengeksekusi skrip SQL untuk membuat tabel
