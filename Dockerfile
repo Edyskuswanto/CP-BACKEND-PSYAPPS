@@ -14,10 +14,10 @@ RUN npm install
 COPY . .
 
 # Tentukan port yang digunakan oleh aplikasi
-ENV PORT 8080
+ENV PORT 5000
 
 # Expose port yang sesuai
-EXPOSE 8080
+EXPOSE 5000
 
 # Command untuk menjalankan aplikasi
-CMD ["node", "server.js"]
+CMD ["node", "src/server.js"]

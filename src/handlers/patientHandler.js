@@ -29,31 +29,43 @@ const getPatientById = (request, h) => {
 };
 
 const addPatient = (request, h) => {
-    const { name, gender, email } = request.payload;
-    const patient_id = nanoid();
-    const newPatient = { patient_id, name, gender, email };
+    const { username, email, password } = request.payload;
 
+    // Lakukan pengecekan apakah nama pasien sudah ada di database
     return new Promise((resolve, reject) => {
-        db.query('INSERT INTO Patients SET ?', newPatient, (err) => {
+        db.query('SELECT * FROM Patients WHERE username = ?', [username], (err, results) => {
             if (err) {
-                reject(h.response({ error: 'Failed to add patient' }).code(500));
+                reject(h.response({ error: 'Failed to check for existing patient' }).code(500));
+            } else if (results.length > 0) {
+                reject(h.response({ error: 'Patient with the same username already exists' }).code(400));
             } else {
-                resolve(h.response(newPatient).code(201));
+                // Jika tidak ada nama yang sama, lanjutkan dengan menambahkan data
+                const patient_id = nanoid();
+                const newPatient = { patient_id, username, email, password };
+
+                db.query('INSERT INTO Patients SET ?', newPatient, (err) => {
+                    if (err) {
+                        reject(h.response({ error: 'Failed to add patient' }).code(500));
+                    } else {
+                        resolve(h.response(newPatient).code(201));
+                    }
+                });
             }
         });
     });
 };
 
+
 const updatePatient = (request, h) => {
     const { id } = request.params;
-    const { name, gender, email } = request.payload;
+    const { username, email, password } = request.payload;
 
     return new Promise((resolve, reject) => {
-        db.query('UPDATE Patients SET ? WHERE patient_id = ?', [{ name, gender, email }, id], (err, results) => {
+        db.query('UPDATE Patients SET ? WHERE patient_id = ?', [{ username, email, password }, id], (err, results) => {
             if (err) {
                 reject(h.response({ error: 'Failed to update patient' }).code(500));
             } else if (results.affectedRows > 0) {
-                resolve(h.response({ patient_id: id, name, gender, email }));
+                resolve(h.response({ patient_id: id, username, email, password }));
             } else {
                 resolve(h.response({ message: 'Patient not found' }).code(404));
             }

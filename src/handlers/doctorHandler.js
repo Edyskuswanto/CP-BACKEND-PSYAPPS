@@ -29,19 +29,27 @@ const getDoctorById = (request, h) => {
 };
 
 const addDoctor = (request, h) => {
-    const { name, email } = request.payload;
-    const doctor_id = nanoid();
-    const newDoctor = { doctor_id, name, email };
+    const { username, email } = request.payload;
 
-    console.log('Adding new doctor:', newDoctor);
-
+    // Lakukan pengecekan apakah nama dokter sudah ada di database
     return new Promise((resolve, reject) => {
-        db.query('INSERT INTO Doctors SET ?', newDoctor, (err) => {
+        db.query('SELECT * FROM Doctors WHERE username = ?', [username], (err, results) => {
             if (err) {
-                console.error('Error adding doctor:', err);
-                reject(h.response({ error: 'Failed to add doctor' }).code(500));
+                reject(h.response({ error: 'Failed to check for existing doctor' }).code(500));
+            } else if (results.length > 0) {
+                reject(h.response({ error: 'Doctor with the same username already exists' }).code(400));
             } else {
-                resolve(h.response(newDoctor).code(201));
+                // Jika tidak ada nama yang sama, lanjutkan dengan menambahkan data
+                const doctor_id = nanoid();
+                const newDoctor = { doctor_id, username, email };
+
+                db.query('INSERT INTO Doctors SET ?', newDoctor, (err) => {
+                    if (err) {
+                        reject(h.response({ error: 'Failed to add doctor' }).code(500));
+                    } else {
+                        resolve(h.response(newDoctor).code(201));
+                    }
+                });
             }
         });
     });
